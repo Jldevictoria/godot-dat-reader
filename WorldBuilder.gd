@@ -1,7 +1,7 @@
 extends Node
 
-var lta_writer = preload("res://Addons/LTDatReader/LTAWriter.gd").new()
-var dtx_reader = preload("res://Addons/DTXReader/TextureBuilder.gd").new()
+var lta_writer # = preload("res://Addons/LTDatReader/LTAWriter.gd").new()
+var dtx_reader = preload("res://addons/godot-dtx-reader/TextureBuilder.gd").new()
 var texture_path = ""
 
 const LIGHTMAP_ATLAS_SIZE = 2048.0#4096.0#2048.0
@@ -16,8 +16,8 @@ func chunk(array, by):
 	return chunks
 
 func build(source_file, options):
-	var file = File.new()
-	if file.open(source_file, File.READ) != OK:
+	var file = FileAccess.open(source_file, FileAccess.READ)
+	if !file:
 		print("Failed to open %s" % source_file)
 		return FAILED
 		
@@ -30,7 +30,7 @@ func build(source_file, options):
 	var scene = PackedScene.new()
 	
 	# Create our nodes
-	var root = Spatial.new()
+	var root = Node3D.new()
 	
 	# Setup the nodes
 	root.name = "Root"
@@ -90,15 +90,13 @@ func build(source_file, options):
 		var lm_image_texture = null
 		
 		if use_lightmaps:
-			lm_image_texture = ImageTexture.new()
-			lm_image_texture.create_from_image(lm_texture_array)
-			lm_image_texture.set_flags(ImageTexture.FLAGS_DEFAULT + ImageTexture.FLAG_ANISOTROPIC_FILTER + ImageTexture.FLAG_CONVERT_TO_LINEAR)
-			
+			lm_image_texture = ImageTexture.create_from_image(lm_texture_array)
+
 		var cached_textures = {}
 		
 		var i = 0;
 		for mesh in meshes:
-			var mesh_instance = MeshInstance.new()
+			var mesh_instance = MeshInstance3D.new()
 			
 			var tex_name = tex_names[i]
 			var tex = get_texture(tex_name)
@@ -148,7 +146,7 @@ func build(source_file, options):
 		var i = 0;
 		for mesh in meshes:
 			
-			var mesh_instance = MeshInstance.new()
+			var mesh_instance = MeshInstance3D.new()
 			
 			var tex_name = tex_names[i]
 			var tex = null
@@ -193,16 +191,14 @@ func build(source_file, options):
 			# Loop through our pieces, and add them to mesh instances
 			lm_texture_array.save_png("lm_null.png")
 			
-			var lm_image_texture = ImageTexture.new()
-			lm_image_texture.create_from_image(lm_texture_array)
-			lm_image_texture.set_flags(ImageTexture.FLAGS_DEFAULT + ImageTexture.FLAG_ANISOTROPIC_FILTER + ImageTexture.FLAG_CONVERT_TO_LINEAR)
+			var lm_image_texture = ImageTexture.create_from_image(lm_texture_array)
 			
 			var cached_textures = {}
 			
 			var i = 0;
 			for mesh in meshes:
 				
-				var mesh_instance = MeshInstance.new()
+				var mesh_instance = MeshInstance3D.new()
 				
 				var tex_name = tex_names[i]
 				var tex = get_texture(tex_name)
@@ -300,7 +296,7 @@ func build_array_mesh(textured_meshes):
 			var mesh_uvs2 = mesh[5]
 			
 			# Mesh is formatted in triangle fan segments per "EditPoly"
-			st.add_triangle_fan( PoolVector3Array(mesh_verts), PoolVector2Array(mesh_uvs), PoolColorArray(mesh_colours), PoolVector2Array(mesh_uvs2), PoolVector3Array(mesh_normals) )
+			st.add_triangle_fan( PackedVector3Array(mesh_verts), PackedVector2Array(mesh_uvs), PackedColorArray(mesh_colours), PackedVector2Array(mesh_uvs2), PackedVector3Array(mesh_normals) )
 		# End For
 		
 		meshes.append(st.commit())
@@ -436,7 +432,7 @@ func fill_array_mesh_jupiter(model, world_meshes = []):
 		var uvs2 = []
 		var normals = []#PoolVector3Array()
 		var colours = []
-		var indices = PoolIntArray()
+		var indices = PackedInt64Array()
 		var polies = []
 		var previous_lightmap_texture = null
 		
@@ -531,7 +527,7 @@ func fill_array_mesh(model, world_models = []):
 		var uvs2 = []
 		var normals = []#PoolVector3Array()
 		var colours = []
-		var indices = PoolIntArray()
+		var indices = PackedInt64Array()
 		var polies = []
 		
 		# Skip the physics mesh

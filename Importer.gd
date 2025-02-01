@@ -1,4 +1,4 @@
-tool
+@tool
 extends EditorImportPlugin
 
 func get_importer_name():

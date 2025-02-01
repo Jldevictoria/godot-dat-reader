@@ -56,14 +56,14 @@ class LTB_PS2:
 	
 	enum IMPORT_RETURN{SUCCESS, PARTIAL, ERROR}
 	
-	func read(f : File, dont_import_world_models = false):
+	func read(f : FileAccess, dont_import_world_models = false):
 		
 		self.version = f.get_32()
 		
 		print("LTB_PS2 Version: %d" % self.version)
 				
 		if [LTB_PS2_VERSION_NOLF].has(self.version) == false:
-			return self._make_response(IMPORT_RETURN.ERROR, 'Unsupported file version (%d)' % self.version)
+			return self._make_response(IMPORT_RETURN.ERROR, 'Unsupported FileAccess version (%d)' % self.version)
 				
 		
 		self.object_data_pos = f.get_32()
@@ -118,7 +118,7 @@ class LTB_PS2:
 		
 	# End Func
 	
-	func world_model_batch_read(f : File, amount_to_read):
+	func world_model_batch_read(f : FileAccess, amount_to_read):
 		var world_models = []
 		for _i in range(amount_to_read):
 			var debug_ftell = f.get_position()
@@ -144,7 +144,7 @@ class LTB_PS2:
 		return { 'code': code, 'message': message }
 	# End Func
 	
-	func read_string(file : File, is_length_a_short = true):
+	func read_string(file : FileAccess, is_length_a_short = true):
 		var length = 0
 		if is_length_a_short:
 			length = file.get_16() 
@@ -155,14 +155,14 @@ class LTB_PS2:
 		return file.get_buffer(length).get_string_from_ascii()
 	# End Func
 	
-	func read_vector2(file : File):
+	func read_vector2(file : FileAccess):
 		var vec2 = Vector2()
 		vec2.x = file.get_float()
 		vec2.y = file.get_float()
 		return vec2
 	# End Func
 		
-	func read_vector3(file : File):
+	func read_vector3(file : FileAccess):
 		var vec3 = Vector3()
 		vec3.x = file.get_float()
 		vec3.y = file.get_float()
@@ -170,15 +170,15 @@ class LTB_PS2:
 		return vec3
 	# End Func
 	
-	func read_quat(file : File):
-		var quat = Quat()
+	func read_quat(file : FileAccess):
+		var quat = Quaternion()
 		quat.w = file.get_float()
 		quat.x = file.get_float()
 		quat.y = file.get_float()
 		quat.z = file.get_float()
 		return quat
 		
-	func read_matrix(file : File):
+	func read_matrix(file : FileAccess):
 		var matrix_4x4 = []
 		for i in range(16):
 			matrix_4x4.append(file.get_float())
@@ -187,7 +187,7 @@ class LTB_PS2:
 	# End Func
 	
 	func convert_4x4_to_transform(matrix):
-		return Transform(
+		return Transform3D(
 			Vector3( matrix[0], matrix[4], matrix[8]  ),
 			Vector3( matrix[1], matrix[5], matrix[9]  ),
 			Vector3( matrix[2], matrix[6], matrix[10] ),
@@ -204,7 +204,7 @@ class LTB_PS2:
 		var extents_min = Vector3()
 		var extents_max = Vector3()
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.properties = ltb.read_string(f, false)
 			self.light_map_grid_size = f.get_float()
 			self.extents_min = ltb.read_vector3(f)
@@ -214,7 +214,7 @@ class LTB_PS2:
 	class WorldTree:
 		var root_node = null
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			
 			var node = WorldTreeNode.new()
 			node.read(ltb, f)
@@ -249,7 +249,7 @@ class LTB_PS2:
 		# End For
 		
 		# Here's where it gets confusing...
-		func read_layout(f : File, current_byte, current_bit, current_offset):
+		func read_layout(f : FileAccess, current_byte, current_bit, current_offset):
 			if current_bit == 8:
 				current_byte = f.get_8()
 				current_bit = 0
@@ -280,7 +280,7 @@ class LTB_PS2:
 			# End For
 		# End Func
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.box_min = ltb.read_vector3(f)
 			self.box_max = ltb.read_vector3(f)
 			self.child_node_count = f.get_32()
@@ -303,7 +303,7 @@ class LTB_PS2:
 		var normal = Vector3()
 		var distance = 0.0
 		
-		func read(ltb: LTB_PS2, f : File):
+		func read(ltb: LTB_PS2, f : FileAccess):
 			self.normal = ltb.read_vector3(f)
 			self.distance = f.get_float()
 		# End Func
@@ -316,7 +316,7 @@ class LTB_PS2:
 			var size = 0
 			var contents = []
 			
-			func read(ltb: LTB_PS2, f : File):
+			func read(ltb: LTB_PS2, f : FileAccess):
 				self.portal_id = f.get_16()
 				self.size = f.get_16()
 				self.contents = f.get_buffer(self.size)
@@ -330,7 +330,7 @@ class LTB_PS2:
 		var polygon_data = []
 		var unk_1
 		
-		func read(ltb: LTB_PS2, f : File):
+		func read(ltb: LTB_PS2, f : FileAccess):
 			self.count = f.get_16()
 			
 			if self.count == 0xFFFF:
@@ -368,7 +368,7 @@ class LTB_PS2:
 		
 		var start_index = 0
 		
-		func read(ltb: LTB_PS2, f : File):
+		func read(ltb: LTB_PS2, f : FileAccess):
 			self.uv1 = ltb.read_vector3(f)
 			self.uv2 = ltb.read_vector3(f)
 			self.uv3 = ltb.read_vector3(f)
@@ -397,7 +397,7 @@ class LTB_PS2:
 			var vertex_index = 0
 			var dummy = []
 			
-			func read(ltb: LTB_PS2, f : File, is_packed = false):
+			func read(ltb: LTB_PS2, f : FileAccess, is_packed = false):
 				if is_packed == true:
 					self.vertex_index = f.get_32()
 					return
@@ -461,7 +461,7 @@ class LTB_PS2:
 		
 		var lightmap_texture = null
 		
-		func read(ltb: LTB_PS2, f: File, vert_count = 0, surfaces = [], planes = []):
+		func read(ltb: LTB_PS2, f: FileAccess, vert_count = 0, surfaces = [], planes = []):
 			
 			var unknown_1 = f.get_32()
 			
@@ -532,7 +532,7 @@ class LTB_PS2:
 			return NFI_OK
 		# End Func
 		
-		func read(ltb: LTB_PS2, f: File, node_count = 0):
+		func read(ltb: LTB_PS2, f: FileAccess, node_count = 0):
 			
 			self.poly_index = f.get_32()
 			# TODO: polygons > WorldBSP.Poly_Count
@@ -556,7 +556,7 @@ class LTB_PS2:
 		var center = Vector3()
 		var dims = Vector3()
 		
-		func read(ltb: LTB_PS2, f: File):
+		func read(ltb: LTB_PS2, f: FileAccess):
 			self.name = ltb.read_string(f)
 			self.unk_int_1 = f.get_32()
 			self.unk_int_2 = f.get_32()
@@ -576,7 +576,7 @@ class LTB_PS2:
 		var unk_short = 0
 		var contents = []
 		
-		func read(ltb: LTB_PS2, f: File):
+		func read(ltb: LTB_PS2, f: FileAccess):
 			self.size = f.get_16()
 			self.unk_short = f.get_16()
 			
@@ -597,7 +597,7 @@ class LTB_PS2:
 		
 		var records = []
 		
-		func read(ltb: LTB_PS2, f: File):
+		func read(ltb: LTB_PS2, f: FileAccess):
 			
 			self.unk_int_1 = f.get_32()
 			self.unk_int_2 = f.get_32()
@@ -659,7 +659,7 @@ class LTB_PS2:
 		var block_table = null
 		var root_node = null
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.world_name = ltb.read_string(f)
 			print("World Name: ",self.world_name)
 			
@@ -781,7 +781,7 @@ class LTB_PS2:
 		var world_model_index = 0
 		var poly_index = 0
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.world_model_index = f.get_16()
 			self.poly_index = f.get_16()
 		# End Func
@@ -791,7 +791,7 @@ class LTB_PS2:
 		var size = 0
 		var data = []
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.size = f.get_16()
 			self.data = Array(f.get_buffer(self.size))
 		# End Func
@@ -803,7 +803,7 @@ class LTB_PS2:
 		var g = []
 		var b = []
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.vertex_count = f.get_8()
 			self.r = Array(f.get_buffer(self.vertex_count))
 			self.g = Array(f.get_buffer(self.vertex_count))
@@ -821,7 +821,7 @@ class LTB_PS2:
 		var batches = []
 		var colours = []
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.name = ltb.read_string(f)
 			self.type = f.get_32()
 			self.batch_count = f.get_8()
@@ -856,7 +856,7 @@ class LTB_PS2:
 		
 		var data = []
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.total_frames_1 = f.get_32()
 			self.total_animations = f.get_32()
 			self.total_memory = f.get_32()
@@ -891,7 +891,7 @@ class LTB_PS2:
 		# Value is based off of code!
 		var value = null
 		
-		func read(ltb : LTB_PS2, string_list, f : File):
+		func read(ltb : LTB_PS2, string_list, f : FileAccess):
 			var name_index = f.get_32()
 			self.name = string_list[name_index]
 			self.code = f.get_8()
@@ -952,7 +952,7 @@ class LTB_PS2:
 		var property_count = 0
 		var properties = []
 		
-		func read(ltb : LTB_PS2, string_list, f : File):
+		func read(ltb : LTB_PS2, string_list, f : FileAccess):
 			self.data_length = f.get_16()
 			var name_index = f.get_32()
 			self.name = string_list[name_index]
@@ -973,7 +973,7 @@ class LTB_PS2:
 		var string_list = []
 		var world_objects = []
 		
-		func read(ltb : LTB_PS2, f : File):
+		func read(ltb : LTB_PS2, f : FileAccess):
 			self.count = f.get_32()
 			self.string_count = f.get_32()
 			var unk_2 = f.get_32()

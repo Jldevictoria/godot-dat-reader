@@ -95,13 +95,13 @@ class LTANode:
 		if typeof(value) == TYPE_STRING:
 			return self._serialize_string(value)
 
-		if typeof(value) == TYPE_REAL:
+		if typeof(value) == TYPE_FLOAT:
 			return self._serialize_float(value)
 
 		if typeof(value) == TYPE_VECTOR3:
 			return self._serialize_vector(value)
 
-		if typeof(value) == TYPE_QUAT:
+		if typeof(value) == TYPE_QUATERNION:
 			return self._serialize_quat(value)
 
 		if typeof(value) == TYPE_BASIS:
@@ -488,14 +488,14 @@ class LTAWriter:
 		# WRITE TO FILE
 		##########################################################
 
-		var file = File.new()
-		file.open(path, File.WRITE)
-		file.store_string(root_node.serialize())
-		file.close()
+		var file = FileAccess.open(path, FileAccess.WRITE)
+		if file:
+			file.store_string(root_node.serialize())
+			file.close()
 		
 		print("Finished serializing node list!")
 		
-		var dtx_reader = preload("res://Addons/DTXReader/TextureBuilder.gd").new()
+		var dtx_reader = preload("res://addons/godot-dtx-reader/TextureBuilder.gd").new()
 		
 		var txt_path = "%s_missing_tex.txt" % path
 #		file = File.new()

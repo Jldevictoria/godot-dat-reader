@@ -99,7 +99,7 @@ class DAT:
 			DAT_VERSION_JUPITER
 			].has(self.version)
 	
-	func read(f : File, dont_import_world_models = false):
+	func read(f : FileAccess, dont_import_world_models = false):
 		
 		self.version = f.get_32()
 		
@@ -179,7 +179,7 @@ class DAT:
 		
 	# End Func
 	
-	func world_model_batch_read(f : File, amount_to_read):
+	func world_model_batch_read(f : FileAccess, amount_to_read):
 		var world_models = []
 		for _i in range(amount_to_read):
 			var next_world_model_pos = f.get_32()
@@ -207,7 +207,7 @@ class DAT:
 		return { 'code': code, 'message': message }
 	# End Func
 	
-	func read_string(file : File, is_length_a_short = true):
+	func read_string(file : FileAccess, is_length_a_short = true):
 		var length = 0
 		if is_length_a_short:
 			length = file.get_16() 
@@ -218,14 +218,14 @@ class DAT:
 		return file.get_buffer(length).get_string_from_ascii()
 	# End Func
 	
-	func read_vector2(file : File):
+	func read_vector2(file : FileAccess):
 		var vec2 = Vector2()
 		vec2.x = file.get_float()
 		vec2.y = file.get_float()
 		return vec2
 	# End Func
 		
-	func read_vector3(file : File):
+	func read_vector3(file : FileAccess):
 		var vec3 = Vector3()
 		vec3.x = file.get_float()
 		vec3.y = file.get_float()
@@ -233,15 +233,15 @@ class DAT:
 		return vec3
 	# End Func
 	
-	func read_quat(file : File):
-		var quat = Quat()
+	func read_quat(file : FileAccess):
+		var quat = Quaternion()
 		quat.w = file.get_float()
 		quat.x = file.get_float()
 		quat.y = file.get_float()
 		quat.z = file.get_float()
 		return quat
 		
-	func read_matrix(file : File):
+	func read_matrix(file : FileAccess):
 		var matrix_4x4 = []
 		for i in range(16):
 			matrix_4x4.append(file.get_float())
@@ -250,7 +250,7 @@ class DAT:
 	# End Func
 	
 	func convert_4x4_to_transform(matrix):
-		return Transform(
+		return Transform3D(
 			Vector3( matrix[0], matrix[4], matrix[8]  ),
 			Vector3( matrix[1], matrix[5], matrix[9]  ),
 			Vector3( matrix[2], matrix[6], matrix[10] ),
@@ -269,7 +269,7 @@ class DAT:
 		
 		var world_offset = Vector3()
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.properties = dat.read_string(f, false)
 			
 			if dat.is_lithtech_1():
@@ -296,7 +296,7 @@ class DAT:
 	class WorldTree:
 		var root_node = null
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			
 			var node = WorldTreeNode.new()
 			node.read(dat, f)
@@ -331,7 +331,7 @@ class DAT:
 		# End For
 		
 		# Here's where it gets confusing...
-		func read_layout(f : File, current_byte, current_bit, current_offset):
+		func read_layout(f : FileAccess, current_byte, current_bit, current_offset):
 			if current_bit == 8:
 				current_byte = f.get_8()
 				current_bit = 0
@@ -362,7 +362,7 @@ class DAT:
 			# End For
 		# End Func
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.box_min = dat.read_vector3(f)
 			self.box_max = dat.read_vector3(f)
 			self.child_node_count = f.get_32()
@@ -380,8 +380,8 @@ class DAT:
 		var name = ""
 		
 		# Read a null-terminated string
-		func read(dat: DAT, f : File):
-			var byte_array = PoolByteArray()
+		func read(dat: DAT, f : FileAccess):
+			var byte_array = PackedByteArray()
 			var current_byte = f.get_8()
 			
 			while current_byte != 0x0:
@@ -396,7 +396,7 @@ class DAT:
 		var normal = Vector3()
 		var distance = 0.0
 		
-		func read(dat: DAT, f : File):
+		func read(dat: DAT, f : FileAccess):
 			self.normal = dat.read_vector3(f)
 			self.distance = f.get_float()
 		# End Func
@@ -409,7 +409,7 @@ class DAT:
 			var size = 0
 			var contents = []
 			
-			func read(dat: DAT, f : File):
+			func read(dat: DAT, f : FileAccess):
 				self.portal_id = f.get_16()
 				self.size = f.get_16()
 				self.contents = f.get_buffer(self.size)
@@ -423,7 +423,7 @@ class DAT:
 		var polygon_data = []
 		var unk_1
 		
-		func read(dat: DAT, f : File):
+		func read(dat: DAT, f : FileAccess):
 			self.count = f.get_16()
 			
 			if self.count == 0xFFFF:
@@ -480,7 +480,7 @@ class DAT:
 			colour.z = min(255.0, colour.z)
 		# End Func
 		
-		func read(dat: DAT, f : File):
+		func read(dat: DAT, f : FileAccess):
 			
 			# Short and sweet, most of the data is in render data..
 			if dat.is_lithtech_jupiter():
@@ -541,7 +541,7 @@ class DAT:
 				self.colour.z = min(255.0, float(dummy[2]))
 			# End Func
 			
-			func read(dat: DAT, f : File):
+			func read(dat: DAT, f : FileAccess):
 				if dat.is_lithtech_jupiter():
 					self.vertex_index = f.get_32()
 					return
@@ -574,7 +574,7 @@ class DAT:
 		# Lithtech 1 for now
 		var lightmap_texture = null
 		
-		func read(dat: DAT, f: File, vert_count = 0):
+		func read(dat: DAT, f: FileAccess, vert_count = 0):
 			if dat.is_lithtech_jupiter():
 				self.surface_index = f.get_32()
 				self.plane_index = f.get_32()
@@ -698,7 +698,7 @@ class DAT:
 			return NFI_OK
 		# End Func
 		
-		func read(dat: DAT, f: File, node_count = 0):
+		func read(dat: DAT, f: FileAccess, node_count = 0):
 			if dat.is_lithtech_1():
 				var unknown_intro = f.get_32()
 			# End If
@@ -729,7 +729,7 @@ class DAT:
 		var center = Vector3()
 		var dims = Vector3()
 		
-		func read(dat: DAT, f: File):
+		func read(dat: DAT, f: FileAccess):
 			self.name = dat.read_string(f)
 			self.unk_int_1 = f.get_32()
 			
@@ -753,7 +753,7 @@ class DAT:
 		var unk_short = 0
 		var contents = []
 		
-		func read(dat: DAT, f: File):
+		func read(dat: DAT, f: FileAccess):
 			self.size = f.get_16()
 			self.unk_short = f.get_16()
 			
@@ -774,7 +774,7 @@ class DAT:
 		
 		var records = []
 		
-		func read(dat: DAT, f: File):
+		func read(dat: DAT, f: FileAccess):
 			
 			self.unk_int_1 = f.get_32()
 			self.unk_int_2 = f.get_32()
@@ -830,7 +830,7 @@ class DAT:
 		var block_table = null
 		var root_node = null
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			var debug_ftell = f.get_position()
 			
 			self.world_info_flags = f.get_32()
@@ -1017,7 +1017,7 @@ class DAT:
 		var world_model_index = 0
 		var poly_index = 0
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.world_model_index = f.get_16()
 			self.poly_index = f.get_16()
 		# End Func
@@ -1030,7 +1030,7 @@ class DAT:
 		
 		
 		# TODO: Decompress via DecompressLMData
-		func decompress_data(f : File):
+		func decompress_data(f : FileAccess):
 			var current_position = 0
 			var safety_break = 1024 # ?
 			var colour_data = []
@@ -1082,7 +1082,7 @@ class DAT:
 			var hello = true
 		# End Func
 		
-		func read(dat : DAT, f : File, type):
+		func read(dat : DAT, f : FileAccess, type):
 			if dat.is_lithtech_2():
 				self.size = f.get_32()
 			else:
@@ -1105,7 +1105,7 @@ class DAT:
 		var g = []
 		var b = []
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.vertex_count = f.get_8()
 			self.r = Array(f.get_buffer(self.vertex_count))
 			self.g = Array(f.get_buffer(self.vertex_count))
@@ -1125,7 +1125,7 @@ class DAT:
 		
 		var sorted_data = {}
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.name = dat.read_string(f)
 			self.type = f.get_32()
 			
@@ -1191,7 +1191,7 @@ class DAT:
 		
 		var data = []
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.total_frames_1 = f.get_32()
 			self.total_animations = f.get_32()
 			self.total_memory = f.get_32()
@@ -1227,7 +1227,7 @@ class DAT:
 		# Value is based off of code!
 		var value = null
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.name = dat.read_string(f)
 			self.code = f.get_8()
 			self.flags = f.get_32()
@@ -1280,7 +1280,7 @@ class DAT:
 		var property_count = 0
 		var properties = []
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.data_length = f.get_16()
 			self.name = dat.read_string(f)
 			self.property_count = f.get_32()
@@ -1298,7 +1298,7 @@ class DAT:
 		var count = 0
 		var world_objects = []
 		
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.count = f.get_32()
 			
 			for _i in range(self.count):
@@ -1329,7 +1329,7 @@ class DAT:
 			var lightmap_texture = null
 			
 			func decode_lm():
-				var lm_data = PoolByteArray()
+				var lm_data = PackedByteArray()
 				var current_pos = 0
 				
 				while current_pos < self.lightmap_size:
@@ -1362,7 +1362,7 @@ class DAT:
 				self.lightmap_texture = ImageTexture.new()
 				self.lightmap_texture.create_from_image(image)
 			
-			func read(dat : DAT, f : File):
+			func read(dat : DAT, f : FileAccess):
 				self.textures = [
 					dat.read_string(f),
 					dat.read_string(f)
@@ -1400,7 +1400,7 @@ class DAT:
 				self.colour.b = (self.packed_colour & 0x000000FF)
 				
 			
-			func read(dat : DAT, f : File):
+			func read(dat : DAT, f : FileAccess):
 				self.pos = dat.read_vector3(f)
 				self.uv1 = dat.read_vector2(f)
 				self.uv2 = dat.read_vector2(f)
@@ -1417,7 +1417,7 @@ class DAT:
 			
 			var render_vertices = []
 			
-			func read(dat : DAT, f : File, block : RenderBlock):
+			func read(dat : DAT, f : FileAccess, block : RenderBlock):
 				self.index0 = f.get_32()
 				self.index1 = f.get_32()
 				self.index2 = f.get_32()
@@ -1436,7 +1436,7 @@ class DAT:
 			var plane_pos = Vector3()
 			var plane_dist = 0.0
 			
-			func read(dat : DAT, f : File):
+			func read(dat : DAT, f : FileAccess):
 				self.vert_count = f.get_8()
 				for i in range(vert_count):
 					var vert = dat.read_vector3(f)
@@ -1453,7 +1453,7 @@ class DAT:
 			var id = 0
 			var enabled = false
 			
-			func read(dat : DAT, f : File):
+			func read(dat : DAT, f : FileAccess):
 				self.vert_count = f.get_8()
 				for i in range(vert_count):
 					var vert = dat.read_vector3(f)
@@ -1473,7 +1473,7 @@ class DAT:
 			var section_lm_size = 0
 			var sub_lms = []
 			
-			func read(dat : DAT, f : File):
+			func read(dat : DAT, f : FileAccess):
 				self.length = f.get_16()
 				for i in range(self.length):
 					next_char.append(f.get_8())
@@ -1495,7 +1495,7 @@ class DAT:
 				var data_size = 0
 				var data = []
 				
-				func read(dat : DAT, f : File):
+				func read(dat : DAT, f : FileAccess):
 					self.left = f.get_32()
 					self.top = f.get_32()
 					self.width = f.get_32()
@@ -1508,7 +1508,7 @@ class DAT:
 				var count = 0
 				var sub_lms = []
 				
-				func read(dat : DAT, f : File):
+				func read(dat : DAT, f : FileAccess):
 					self.count = f.get_32()
 					for i in range(self.count):
 						var sub_lm = SubLightmap.new()
@@ -1535,7 +1535,7 @@ class DAT:
 			var child_flags = 0
 			var child_indexes = []
 			
-			func read(dat : DAT, f : File):
+			func read(dat : DAT, f : FileAccess):
 				self.center = dat.read_vector3(f)
 				self.half_dims = dat.read_vector3(f)
 				
@@ -1582,7 +1582,7 @@ class DAT:
 				pass
 			# End Func
 			
-		func read(dat : DAT, f : File):
+		func read(dat : DAT, f : FileAccess):
 			self.render_block_count = f.get_32()
 			for i in range(self.render_block_count):
 				var block = RenderBlock.new()
