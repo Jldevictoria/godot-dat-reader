@@ -1,6 +1,6 @@
 extends Node
 
-var lta_writer # = preload("res://Addons/LTDatReader/LTAWriter.gd").new()
+var lta_writer # = preload("res://addons/godot-dat-reader/LTAWriter.gd").new()
 var dtx_reader = preload("res://addons/godot-dtx-reader/TextureBuilder.gd").new()
 var texture_path = ""
 
@@ -23,8 +23,8 @@ func build(source_file, options):
 		
 	print("Opened %s" % source_file)
 	
-	var dat_file = load("res://Addons/LTDatReader/Models/DAT.gd")
-	var ltb_file = load("res://Addons/LTDatReader/Models/LTB_PS2.gd")
+	var dat_file = load("res://addons/godot-dat-reader/Models/DAT.gd")
+	var ltb_file = load("res://addons/godot-dat-reader/Models/LTB_PS2.gd")
 	
 	# Setup our new scene
 	var scene = PackedScene.new()
@@ -102,7 +102,7 @@ func build(source_file, options):
 			var tex = get_texture(tex_name)
 			
 			var mat = ShaderMaterial.new()
-			mat.shader = load("res://Addons/LTDatReader/Shaders/LT1.tres") as VisualShader
+			mat.shader = load("res://addons/godot-dat-reader/Shaders/LT1.tres") as VisualShader
 			
 			mat.set_shader_param("main_texture", tex)
 			
@@ -157,7 +157,7 @@ func build(source_file, options):
 				tex = get_texture(tex_name)
 
 			var mat = ShaderMaterial.new()
-			mat.shader = load("res://Addons/LTDatReader/Shaders/LT1.tres") as VisualShader
+			mat.shader = load("res://addons/godot-dat-reader/Shaders/LT1.tres") as VisualShader
 			
 			mat.set_shader_param("main_texture", tex)
 			#mat.set_shader_param("lm_texture", lm_image_texture)
@@ -204,7 +204,7 @@ func build(source_file, options):
 				var tex = get_texture(tex_name)
 				
 				var mat = ShaderMaterial.new()
-				mat.shader = load("res://Addons/LTDatReader/Shaders/LT1.tres") as VisualShader
+				mat.shader = load("res://addons/godot-dat-reader/Shaders/LT1.tres") as VisualShader
 				
 				mat.set_shader_param("main_texture", tex)
 				mat.set_shader_param("lm_texture", lm_image_texture)
@@ -350,9 +350,9 @@ func build_array_mesh_jupiter(textured_meshes):
 			if use_lightmap_texture:
 				lightmap_texture = mesh[4]
 			
-			mesh_uvs.invert()
-			mesh_normals.invert()
-			mesh_verts.invert()
+			mesh_uvs.reverse()
+			mesh_normals.reverse()
+			mesh_verts.reverse()
 
 			# Pack in 3 verts at a time!
 			var i = 0

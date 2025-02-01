@@ -102,15 +102,14 @@ void fragment() {
 
 }
 "
-graph_offset = Vector2(-900.014, -9.99315)
 flags/vertex_lighting = true
 nodes/fragment/0/position = Vector2(340, 120)
 nodes/fragment/2/node = SubResource("2")
 nodes/fragment/2/position = Vector2(-640, 80)
 nodes/fragment/3/node = SubResource("3")
-nodes/fragment/3/position = Vector2(-1220, 160)
+nodes/fragment/3/position = Vector2(-1360, 140)
 nodes/fragment/4/node = SubResource("4")
-nodes/fragment/4/position = Vector2(-1220, 440)
+nodes/fragment/4/position = Vector2(-1360, 480)
 nodes/fragment/5/node = SubResource("5")
 nodes/fragment/5/position = Vector2(-940, 420)
 nodes/fragment/6/node = SubResource("6")
